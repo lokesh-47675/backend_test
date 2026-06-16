@@ -394,6 +394,11 @@ module.exports = io => {
 
       if (!meeting) return
 
+      console.log('👀 PRESENCE UPDATE:',data.userId,
+    data.isPresent,
+    data.faceCount
+  )
+
       // Store participant presence
       meeting.updateParticipant(data.userId, {
         isPresent: data.isPresent,
@@ -407,6 +412,9 @@ module.exports = io => {
       // Broadcast to everyone in meeting
       io.to(data.meetingId).emit('presence-update', data)
     })
+
+
+})
 
     socket.on('toggle-audio', async data => {
       const meeting = await meetingStore.getMeeting(data.meetingId)
