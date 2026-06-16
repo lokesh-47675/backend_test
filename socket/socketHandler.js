@@ -390,31 +390,47 @@ module.exports = io => {
     // --- User State Updates ---
 
     socket.on('presence-update', async data => {
-      const meeting = await meetingStore.getMeeting(data.meetingId)
+      try {
+        const meeting = await meetingStore.getMeeting(data.meetingId)
 
-      if (!meeting) return
+        if (!meeting) {
+          console.log(
+            '❌ Meeting not found for presence update:',
+            data.meetingId
+          )
+          return
+        }
 
-      console.log(
-    '👀 PRESENCE UPDATE:',
-    data.userId,
-    data.isPresent,
-    data.faceCount
-  )
+        console.log(
+          '👀 PRESENCE UPDATE:',
+          data.userId,
+          data.isPresent,
+          data.faceCount
+        )
 
-      // Store participant presence
-      meeting.updateParticipant(data.userId, {
-        isPresent: data.isPresent,
-        isAway: data.isAway,
-        faceDetected: data.faceDetected,
-        faceCount: data.faceCount,
-        presenceConfidence: data.confidence,
-        lastSeenAt: data.lastSeenAt
-      })
+        // Save latest presence state
+        meeting.updateParticipant(data.userId, {
+          isPresent: data.isPresent,
+          isAway: data.isAway,
+          faceDetected: data.faceDetected,
+          faceCount: data.faceCount,
+          presenceConfidence: data.confidence,
+          lastSeenAt: data.lastSeenAt
+        })
 
-      // Broadcast to everyone in meeting
-      io.to(data.meetingId).emit('presence-update', data)
+        // Send to all participants including host
+        io.to(data.meetingId).emit('presence-update', data)
+
+        console.log(
+          '📡 PRESENCE BROADCASTED:',
+          data.userId,
+          '->',
+          data.meetingId
+        )
+      } catch (error) {
+        console.error('❌ Presence Update Error:', error)
+      }
     })
-
 
     socket.on('toggle-audio', async data => {
       const meeting = await meetingStore.getMeeting(data.meetingId)
