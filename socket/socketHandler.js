@@ -136,14 +136,14 @@ module.exports = io => {
       const { meetingId, userId } = data
       console.log('👋 LEAVE-MEETING:', userId, 'leaving', meetingId)
 
-      // if (meetingEmotions.has(meetingId)) {
-      //   const meetingData = meetingEmotions.get(meetingId)
-      //   delete meetingData[userId]
-      //
-      //   if (Object.keys(meetingData).length === 0) {
-      //     meetingEmotions.delete(meetingId)
-      //   }
-      // }
+      if (meetingEmotions.has(meetingId)) {
+        const meetingData = meetingEmotions.get(meetingId)
+        delete meetingData[userId]
+
+        if (Object.keys(meetingData).length === 0) {
+          meetingEmotions.delete(meetingId)
+        }
+      }
 
       const meeting = await meetingStore.getMeeting(meetingId)
       if (meeting) {
@@ -157,27 +157,42 @@ module.exports = io => {
 
     socket.on('disconnect', async () => {
       console.log('❌ Socket disconnected:', socket.id)
+
       const session = activeSockets.get(socket.id)
 
       if (session) {
         const { meetingId, userId, username } = session
+
         console.log(
           `   -> User ${username} (${userId}) disconnected from ${meetingId}`
         )
 
+        // ==========================================
+        // Emotion Cleanup
+        // ==========================================
+
+        if (meetingEmotions.has(meetingId)) {
+          const meetingData = meetingEmotions.get(meetingId)
+
+          delete meetingData[userId]
+
+          console.log(`🧹 Removed emotion data for ${userId}`)
+
+          if (Object.keys(meetingData).length === 0) {
+            meetingEmotions.delete(meetingId)
+
+            console.log(`🧹 Removed emotion cache for meeting ${meetingId}`)
+          }
+        }
+
         const meeting = await meetingStore.getMeeting(meetingId)
+
         if (meeting) {
-          // Notify others
           socket.to(meetingId).emit('user-disconnected', {
             userId,
             username,
             socketId: socket.id
           })
-
-          // Note: We don't remove the participant immediately from the store
-          // to allow for quick reconnections. The frontend handles cleanup of the *connection*.
-          // If they don't return, they remain in the list until they explicitly "leave" or the meeting ends.
-          // Optional: You could set a timeout here to remove them if they don't return in X minutes.
         }
 
         activeSockets.delete(socket.id)
@@ -560,13 +575,5 @@ module.exports = io => {
       }
     })
 
-    // socket.on('disconnect', () => {
-    //   if (meetingEmotions.has(meetingId)) {
-    //     const meeting = meetingEmotions.get(meetingId)
-
-    //     delete meeting[userId]
-    //   }
-    // })
-    //Edit End
   })
 }
