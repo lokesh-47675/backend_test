@@ -389,6 +389,25 @@ module.exports = io => {
 
     // --- User State Updates ---
 
+    socket.on('presence-update', async data => {
+      const meeting = await meetingStore.getMeeting(data.meetingId)
+
+      if (!meeting) return
+
+      // Store participant presence
+      meeting.updateParticipant(data.userId, {
+        isPresent: data.isPresent,
+        isAway: data.isAway,
+        faceDetected: data.faceDetected,
+        faceCount: data.faceCount,
+        presenceConfidence: data.confidence,
+        lastSeenAt: data.lastSeenAt
+      })
+
+      // Broadcast to everyone in meeting
+      io.to(data.meetingId).emit('presence-update', data)
+    })
+
     socket.on('toggle-audio', async data => {
       const meeting = await meetingStore.getMeeting(data.meetingId)
       if (meeting) {
@@ -574,6 +593,5 @@ module.exports = io => {
         }
       }
     })
-
   })
 }
