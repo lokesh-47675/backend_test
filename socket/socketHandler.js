@@ -394,7 +394,9 @@ module.exports = io => {
 
       if (!meeting) return
 
-      console.log('👀 PRESENCE UPDATE:',data.userId,
+      console.log(
+    '👀 PRESENCE UPDATE:',
+    data.userId,
     data.isPresent,
     data.faceCount
   )
@@ -413,8 +415,6 @@ module.exports = io => {
       io.to(data.meetingId).emit('presence-update', data)
     })
 
-
-})
 
     socket.on('toggle-audio', async data => {
       const meeting = await meetingStore.getMeeting(data.meetingId)
