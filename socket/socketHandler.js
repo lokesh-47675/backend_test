@@ -407,6 +407,7 @@ module.exports = io => {
           data.isPresent,
           data.faceCount
         )
+        console.log('📥 BACKEND RECEIVED PRESENCE:', data)
 
         // Save latest presence state
         meeting.updateParticipant(data.userId, {
