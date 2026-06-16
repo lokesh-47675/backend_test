@@ -535,7 +535,7 @@ module.exports = io => {
     //Edit End
 
     //Edit Start
-    socket.on('emotion-update', ({ meetingId, userId, emotions }) => {
+    socket.on('emotion-update', async ({ meetingId, userId, emotions }) => {
       if (!meetingEmotions.has(meetingId)) {
         meetingEmotions.set(meetingId, {})
       }
@@ -546,7 +546,18 @@ module.exports = io => {
 
       const aggregatedMood = calculateMeetingMood(meetingData)
 
-      io.to(meetingId).emit('meeting-mood-update', aggregatedMood)
+      const meeting = await meetingStore.getMeeting(meetingId)
+
+      if (meeting) {
+        const hostParticipant = meeting.getParticipant(meeting.host)
+
+        if (hostParticipant?.socketId) {
+          io.to(hostParticipant.socketId).emit(
+            'meeting-mood-update',
+            aggregatedMood
+          )
+        }
+      }
     })
 
     // socket.on('disconnect', () => {
