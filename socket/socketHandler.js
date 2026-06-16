@@ -591,6 +591,15 @@ module.exports = io => {
     socket.on('disable-mood-analysis', ({ meetingId }) => {
       io.to(meetingId).emit('mood-analysis-disabled')
     })
+
+    // Presence Detection
+    socket.on('enable-presence-detection', ({ meetingId }) => {
+      io.to(meetingId).emit('presence-detection-enabled')
+    })
+
+    socket.on('disable-presence-detection', ({ meetingId }) => {
+      io.to(meetingId).emit('presence-detection-disabled')
+    })
     //Edit End
 
     //Edit Start
