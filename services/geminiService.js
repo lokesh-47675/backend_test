@@ -401,6 +401,23 @@ class GeminiService {
 
         const { meetingId, title, host, participants, messages, transcript, activities, duration, startTime, endTime } = meetingData;
 
+
+
+
+        //Test 
+        console.log('================================');
+        console.log('📊 SUMMARY INPUT DEBUG');
+        console.log('Meeting ID:', meetingId);
+        console.log('Transcript Count:', transcript?.length);
+        console.log('Messages Count:', messages?.length);
+        console.log('Activities Count:', activities?.length);
+        console.log('TRANSCRIPT DATA:');
+        console.log(JSON.stringify(transcript, null, 2));
+        console.log('MESSAGES DATA:');
+        console.log(JSON.stringify(messages, null, 2));
+        console.log('================================');
+
+
         // Format all data for AI
         const formattedTranscript = this.formatTranscript(transcript);
         const formattedChat = this.formatConversation(messages);
